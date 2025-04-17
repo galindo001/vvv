@@ -40,16 +40,12 @@ if pdf_file:
     # Definir prompt para la cadena de QA
     qa_prompt = PromptTemplate(
         input_variables=["context", "question"],
-        template="""
-Eres un asistente útil. Utiliza la siguiente información extraída del documento para responder la pregunta.
-
-Contexto:
-{context}
-
-Pregunta:
-{question}
-
-Respuesta:"""
+        template=(
+            "Eres un asistente útil. Utiliza la siguiente información extraída del documento para responder la pregunta.\n\n"
+            "Contexto:\n{context}\n\n"
+            "Pregunta:\n{question}\n\n"
+            "Respuesta:"
+        )
     )
 
     # Crear la cadena de Retrieval QA
@@ -69,11 +65,3 @@ Respuesta:"""
 
 # Nota: El resto de la estructura de la app permanece igual según tu petición.
 
-        tone=option_tone, 
-        dialect=option_dialect, 
-        draft=draft_input
-    )
-
-    improved_redaction = llm(prompt_with_draft)
-
-    st.write(improved_redaction)
