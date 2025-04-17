@@ -1,7 +1,7 @@
 import streamlit as st
 from langchain import PromptTemplate
 from langchain_openai import OpenAI
-from langchain.document_loaders import PyPDFLoader
+from langchain.document_loaders import PDFMinerLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
@@ -27,8 +27,8 @@ if pdf_file:
     with open("temp.pdf", "wb") as f:
         f.write(pdf_file.read())
 
-    # Cargar y dividir el documento
-    loader = PyPDFLoader("temp.pdf")
+    # Cargar y dividir el documento usando PDFMinerLoader
+    loader = PDFMinerLoader("temp.pdf")
     documentos = loader.load()
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     fragmentos = text_splitter.split_documents(documentos)
@@ -64,4 +64,3 @@ if pdf_file:
         st.write(respuesta)
 
 # Nota: El resto de la estructura de la app permanece igual según tu petición.
-
