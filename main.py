@@ -102,4 +102,3 @@ if pdf_file:
         st.write(answer)
 
 # ===== Fin de la app =====
-"
