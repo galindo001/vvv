@@ -1,104 +1,124 @@
 import streamlit as st
 from langchain import PromptTemplate
 from langchain_openai import OpenAI
-from langchain.document_loaders.pdf import PDFMinerLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.vectorstores import FAISS
-from langchain.chains import RetrievalQA
 
-# Página de configuración
-st.set_page_config(page_title="Multi-Tool AI App")
-st.header("✍️ Reescribe tu texto & 📄 Pregunta a un PDF")
-
-# Entrada de la API Key de OpenAI
-st.markdown("## 🔑 Ingresa tu OpenAI API Key")
-openai_api_key = st.text_input("OpenAI API Key", type="password")
-if not openai_api_key:
-    st.warning('Por favor, ingresa tu OpenAI API Key.', icon="⚠️")
-    st.stop()
-
-# ===== Sección 1: Re-writing de texto =====
-st.markdown("---")
-st.subheader("1. Re-write your text")
 
 template = """
-Below is a draft text that may be poorly worded.
-Your goal is to:
-- Properly redact the draft text
-- Convert the draft text to a specified tone
-- Convert the draft text to a specified dialect
+    Below is a draft text that may be poorly worded.
+    Your goal is to:
+    - Properly redact the draft text
+    - Convert the draft text to a specified tone
+    - Convert the draft text to a specified dialect
 
-DRAFT: {draft}
-TONE: {tone}
-DIALECT: {dialect}
+    Here are some examples different Tones:
+    - Formal: Greetings! OpenAI has announced that Sam Altman is rejoining the company as its Chief Executive Officer. After a period of five days of conversations, discussions, and deliberations, the decision to bring back Altman, who had been previously dismissed, has been made. We are delighted to welcome Sam back to OpenAI.
+    - Informal: Hey everyone, it's been a wild week! We've got some exciting news to share - Sam Altman is back at OpenAI, taking up the role of chief executive. After a bunch of intense talks, debates, and convincing, Altman is making his triumphant return to the AI startup he co-founded.  
 
-YOUR {dialect} RESPONSE:
+    Here are some examples of words in different dialects:
+    - American: French Fries, cotton candy, apartment, garbage, \
+        cookie, green thumb, parking lot, pants, windshield
+    - British: chips, candyfloss, flag, rubbish, biscuit, green fingers, \
+        car park, trousers, windscreen
+
+    Example Sentences from each dialect:
+    - American: Greetings! OpenAI has announced that Sam Altman is rejoining the company as its Chief Executive Officer. After a period of five days of conversations, discussions, and deliberations, the decision to bring back Altman, who had been previously dismissed, has been made. We are delighted to welcome Sam back to OpenAI.
+    - British: On Wednesday, OpenAI, the esteemed artificial intelligence start-up, announced that Sam Altman would be returning as its Chief Executive Officer. This decisive move follows five days of deliberation, discourse and persuasion, after Altman's abrupt departure from the company which he had co-established.
+
+    Please start the redaction with a warm introduction. Add the introduction \
+        if you need to.
+    
+    Below is the draft text, tone, and dialect:
+    DRAFT: {draft}
+    TONE: {tone}
+    DIALECT: {dialect}
+
+    YOUR {dialect} RESPONSE:
 """
 
-prompt_rewrite = PromptTemplate(
+#PromptTemplate variables definition
+prompt = PromptTemplate(
     input_variables=["tone", "dialect", "draft"],
     template=template,
 )
 
-# Input de texto
-draft_input = st.text_area("Escribe el texto a reescribir (máx. 700 palabras)", height=150)
-if draft_input and len(draft_input.split()) <= 700:
-    col1, col2 = st.columns(2)
-    with col1:
-        tone = st.selectbox('Tono', ['Formal','Informal'], key='tone')
-    with col2:
-        dialect = st.selectbox('Dialect', ['American','British'], key='dialect')
 
-    if draft_input:
-        llm = OpenAI(temperature=0.7, openai_api_key=openai_api_key)
-        prompt_fmt = prompt_rewrite.format(draft=draft_input, tone=tone, dialect=dialect)
-        result = llm(prompt_fmt)
-        st.markdown("### Resultado:")
-        st.write(result)
-elif draft_input:
-    st.error("Por favor, ingresa un texto de hasta 700 palabras.")
+#LLM and key loading function
+def load_LLM(openai_api_key):
+    """Logic for loading the chain you want to use should go here."""
+    # Make sure your openai_api_key is set as an environment variable
+    llm = OpenAI(temperature=.7, openai_api_key=openai_api_key)
+    return llm
 
-# ===== Sección 2: QA sobre PDF =====
-st.markdown("---")
-st.subheader("2. Pregunta a tu documento PDF")
 
-pdf_file = st.file_uploader("Sube un PDF para hacer preguntas", type=['pdf'])
-if pdf_file:
-    # Guardar temporalmente el PDF
-    path = "temp.pdf"
-    with open(path, "wb") as f:
-        f.write(pdf_file.read())
+#Page title and header
+st.set_page_config(page_title="Re-write your text")
+st.header("Re-write your text")
 
-    # Cargar y dividir texto
-    loader = PDFMinerLoader(path)
-    docs = loader.load()
-    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-    chunks = splitter.split_documents(docs)
 
-    # Crear embeddings e índice
-    embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
-    index = FAISS.from_documents(chunks, embeddings)
+#Intro: instructions
+col1, col2 = st.columns(2)
 
-    # Prompt de QA
-    qa_prompt = PromptTemplate(
-        input_variables=["context","question"],
-        template=(
-            "Eres un asistente útil. Usa la información del documento para responder.\n\n"
-            "Contexto:\n{context}\n\nPregunta:\n{question}\n\nRespuesta:"
-        )
+with col1:
+    st.markdown("Re-write your text in different styles.")
+
+with col2:
+    st.write("Contact with [AI Accelera](https://aiaccelera.com) to build your AI Projects")
+
+
+#Input OpenAI API Key
+st.markdown("## Enter Your OpenAI API Key")
+
+def get_openai_api_key():
+    input_text = st.text_input(label="OpenAI API Key ",  placeholder="Ex: sk-2twmA8tfCb8un4...", key="openai_api_key_input", type="password")
+    return input_text
+
+openai_api_key = get_openai_api_key()
+
+
+# Input
+st.markdown("## Enter the text you want to re-write")
+
+def get_draft():
+    draft_text = st.text_area(label="Text", label_visibility='collapsed', placeholder="Your Text...", key="draft_input")
+    return draft_text
+
+draft_input = get_draft()
+
+if len(draft_input.split(" ")) > 700:
+    st.write("Please enter a shorter text. The maximum length is 700 words.")
+    st.stop()
+
+# Prompt template tunning options
+col1, col2 = st.columns(2)
+with col1:
+    option_tone = st.selectbox(
+        'Which tone would you like your redaction to have?',
+        ('Formal', 'Informal'))
+    
+with col2:
+    option_dialect = st.selectbox(
+        'Which English Dialect would you like?',
+        ('American', 'British'))
+    
+    
+# Output
+st.markdown("### Your Re-written text:")
+
+if draft_input:
+    if not openai_api_key:
+        st.warning('Please insert OpenAI API Key. \
+            Instructions [here](https://help.openai.com/en/articles/4936850-where-do-i-find-my-secret-api-key)', 
+            icon="⚠️")
+        st.stop()
+
+    llm = load_LLM(openai_api_key=openai_api_key)
+
+    prompt_with_draft = prompt.format(
+        tone=option_tone, 
+        dialect=option_dialect, 
+        draft=draft_input
     )
-    qa = RetrievalQA.from_chain_type(
-        llm=OpenAI(temperature=0, openai_api_key=openai_api_key),
-        chain_type='stuff',
-        retriever=index.as_retriever(),
-        chain_type_kwargs={'prompt': qa_prompt}
-    )
 
-    pregunta = st.text_input("Escribe tu pregunta sobre el PDF")
-    if pregunta:
-        answer = qa.run(pregunta)
-        st.markdown("### Respuesta:")
-        st.write(answer)
+    improved_redaction = llm(prompt_with_draft)
 
-# ===== Fin de la app =====
+    st.write(improved_redaction)
