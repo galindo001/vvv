@@ -51,18 +51,18 @@ def load_LLM(openai_api_key):
 
 
 #Page title and header
-st.set_page_config(page_title="Re-write your text")
-st.header("Re-write your text")
+st.set_page_config(page_title="Bridge Service")
+st.header("Reescribe tu texto")
 
 
 #Intro: instructions
 col1, col2 = st.columns(2)
 
 with col1:
-    st.markdown("Re-write your text in different styles.")
+    st.markdown("Reescribe tu texto en diferentes estilos.")
 
 with col2:
-    st.write("Contact with [AI Accelera](https://aiaccelera.com) to build your AI Projects")
+    st.write("Contact with Bridge SErvice AI Projects")
 
 
 #Input OpenAI API Key
